@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  fullName      String
+  phoneNumber   String
+  address       String
+  role          UserRole  @default(BUYER)
+  isSuperAdmin  Boolean   @default(false)
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  sellerProfile SellerProfile?
+  orders        Order[]
+}
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+model SellerProfile {
+  id                    String       @id @default(uuid())
+  userId                String       @unique
+  businessName          String
+  businessDescription   String       @db.Text
+  sellerType            SellerType?  // null until approved
+  paymentMethods        String[]     // Array of payment methods
+  averageShippingCost   Float
+  estimatedDeliveryDays Int
+  shippingRegions       String       @db.Text
+  socialLinks           String?      @db.Text
+  isApproved            Boolean      @default(false)
+  isDeleted             Boolean      @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  
+  // Relations
+  user                  User         @relation(fields: [userId], references: [id])
+  products              Product[]
+  orders                Order[]
+}
+
+enum SellerType {
+  OFFICIAL
+  FAN_MADE
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  products    Product[]
+}
+
+model Product {
+  id          String        @id @default(uuid())
+  sellerId    String
+  categoryId  String
+  name        String
+  description String        @db.Text
+  price       Float
+  images      ProductImage[]
+  productType SellerType?   // Inherited from seller
+  isApproved  Boolean       @default(false)
+  isDeleted   Boolean       @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+  category    Category      @relation(fields: [categoryId], references: [id])
+  orders      Order[]
+  
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([isApproved])
+}
+
+model ProductImage {
+  id         String   @id @default(uuid())
+  productId  String
+  url        String
+  publicId   String   // Cloudinary public_id for deletion
+  order      Int      // Image order (0-4)
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  buyerId         String
+  sellerId        String
+  productId       String
+  status          OrderStatus @default(PENDING)
+  buyerAddress    String      @db.Text
+  buyerPhone      String
+  buyerNotes      String?     @db.Text
+  isCancelled     Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  buyer           User          @relation(fields: [buyerId], references: [id])
+  seller          SellerProfile @relation(fields: [sellerId], references: [id])
+  product         Product       @relation(fields: [productId], references: [id])
+  
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
