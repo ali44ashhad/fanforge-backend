@@ -28,7 +28,7 @@ graph TD
         PubCat[Category API<br/>View Categories]:::public
     end
 
-    subgraph Authenticated_User [Authenticated User (Buyer)]
+    subgraph Authenticated_User [Authenticated User -Buyer]
         UserProfile[User Profile API<br/>Manage Profile]:::user
         BuyerOrder[Order API<br/>Place & Manage Orders]:::user
     end
