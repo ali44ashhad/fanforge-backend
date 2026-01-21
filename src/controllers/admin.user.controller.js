@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const bcrypt = require('bcrypt');
 const { AppError, catchAsync } = require('../utils/helpers');
+const { sendAccountRestoredEmail } = require('../services/email.service');
 
 // Get all users
 const getAllUsers = catchAsync(async (req, res) => {
@@ -198,6 +199,79 @@ const banUser = catchAsync(async (req, res) => {
     });
 });
 
+// Unban user (restore)
+const unbanUser = catchAsync(async (req, res) => {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+        where: { id },
+        include: {
+            sellerProfile: true,
+        },
+    });
+
+    if (!user) {
+        throw new AppError('User not found', 404);
+    }
+
+    if (!user.isDeleted) {
+        throw new AppError('User is not banned', 400);
+    }
+
+    // Calculate time window for product restoration (deletedAt +/- 5 seconds)
+    const deletionTime = new Date(user.deletedAt);
+    const windowStart = new Date(deletionTime.getTime() - 5000); // 5 seconds before
+    const windowEnd = new Date(deletionTime.getTime() + 5000);   // 5 seconds after
+
+    // Restore user and cascade effects in a transaction
+    await prisma.$transaction(async (tx) => {
+        // Restore user
+        await tx.user.update({
+            where: { id },
+            data: {
+                isDeleted: false,
+                deletedAt: null,
+            },
+        });
+
+        // If user is a seller, restore seller profile and specific products
+        if (user.sellerProfile) {
+            await tx.sellerProfile.update({
+                where: { id: user.sellerProfile.id },
+                data: {
+                    isDeleted: false,
+                    deletedAt: null,
+                },
+            });
+
+            // Restore products deleted around the same time as the user ban
+            await tx.product.updateMany({
+                where: {
+                    sellerId: user.sellerProfile.id,
+                    deletedAt: {
+                        gte: windowStart,
+                        lte: windowEnd,
+                    },
+                },
+                data: {
+                    isDeleted: false,
+                    deletedAt: null,
+                },
+            });
+
+            // Note: We do NOT restore cancelled orders
+        }
+    });
+
+    // Send email notification
+    await sendAccountRestoredEmail(user.email, user.fullName);
+
+    res.json({
+        success: true,
+        message: 'User unbanned successfully',
+    });
+});
+
 // Add admin (super admin only)
 const addAdmin = catchAsync(async (req, res) => {
     const { email, password, fullName, phoneNumber, address } = req.body;
@@ -281,6 +355,7 @@ module.exports = {
     getAllUsers,
     getUserById,
     banUser,
+    unbanUser,
     addAdmin,
     removeAdmin,
 };

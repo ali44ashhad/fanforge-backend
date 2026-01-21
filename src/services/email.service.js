@@ -7,6 +7,7 @@ const {
     newOrderTemplate,
     productApprovedTemplate,
     sellerApprovedTemplate,
+    accountRestoredTemplate,
 } = require('../templates/email');
 
 const sendEmail = async (to, subject, html) => {
@@ -75,6 +76,13 @@ const sendSellerApprovedEmail = async (sellerEmail, sellerName, sellerType) => {
     await sendEmail(sellerEmail, subject, html);
 };
 
+// Account restored - to user
+const sendAccountRestoredEmail = async (userEmail, userName) => {
+    const subject = 'Account Restored - FanForge';
+    const html = accountRestoredTemplate(userName);
+    await sendEmail(userEmail, subject, html);
+};
+
 module.exports = {
     sendOrderPlacedEmail,
     sendNewOrderEmail,
@@ -83,4 +91,5 @@ module.exports = {
     sendOrderCancelledEmail,
     sendProductApprovedEmail,
     sendSellerApprovedEmail,
+    sendAccountRestoredEmail,
 };

@@ -3,6 +3,7 @@ const {
     getAllUsers,
     getUserById,
     banUser,
+    unbanUser,
     addAdmin,
     removeAdmin,
 } = require('../controllers/admin.user.controller');
@@ -19,6 +20,7 @@ router.use(requireRole(['ADMIN']));
 router.get('/', getAllUsers);
 router.get('/:id', getUserById);
 router.delete('/:id/ban', banUser);
+router.put('/:id/unban', unbanUser);
 
 // Super admin only routes
 router.post('/admins', requireSuperAdmin, validate(addAdminSchema), addAdmin);

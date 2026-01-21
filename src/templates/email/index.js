@@ -241,6 +241,37 @@ const sellerApprovedTemplate = (sellerName, sellerType) => `
 </html>
 `;
 
+const accountRestoredTemplate = (userName) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
+    .content { padding: 20px; background-color: #f9f9f9; }
+    .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Account Restored</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${userName},</p>
+      <p>Your account on FanForge has been restored.</p>
+      <p>You can now log in and access your account as usual.</p>
+      <p>If you have any questions or concerns, please contact our support team.</p>
+    </div>
+    <div class="footer">
+      <p>Welcome back to FanForge!</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
 module.exports = {
   orderPlacedTemplate,
   newOrderTemplate,
@@ -249,4 +280,5 @@ module.exports = {
   orderCancelledTemplate,
   productApprovedTemplate,
   sellerApprovedTemplate,
+  accountRestoredTemplate,
 };
