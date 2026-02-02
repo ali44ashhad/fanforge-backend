@@ -7,7 +7,7 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed": "prisma db seed",
-    "build": "prisma generate && npm run build"
+    "build": "prisma generate"
   },
   "keywords": [],
   "author": "",
