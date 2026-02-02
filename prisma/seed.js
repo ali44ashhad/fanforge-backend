@@ -3,15 +3,19 @@ const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
+
 async function main() {
     // Create super admin
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const adminPassword = process.env.ADMIN_SEED_PASSWORD;
+    const adminEmail = process.env.ADMIN_SEED_EMAIL;
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
 
     const superAdmin = await prisma.user.upsert({
-        where: { email: 'admin@fanforge.com' },
+        where: { email: adminEmail },
         update: {},
         create: {
-            email: 'admin@fanforge.com',
+            email: adminEmail,
             password: hashedPassword,
             fullName: 'Super Admin',
             phoneNumber: '+1234567890',
