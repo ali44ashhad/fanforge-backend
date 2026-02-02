@@ -121,6 +121,7 @@ User Roles: Buyer, Seller
 - **GET** `/` - List all users.
 - **GET** `/:id` - Get user details.
 - **DELETE** `/:id/ban` - Ban a user.
+- **PUT** `/:id/unban` - Unban a user.
 - **POST** `/admins` - Add a new admin (Super Admin only).
 - **DELETE** `/admins/:id` - Remove an admin (Super Admin only).
 
